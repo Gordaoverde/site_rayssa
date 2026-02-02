@@ -482,11 +482,14 @@
   </section>
 
   <script>
-    /* ================= MÚSICA COM FADE-IN ================= */
+  document.addEventListener('DOMContentLoaded', () => {
+
+    /* ================= VARIÁVEIS GLOBAIS ================= */
     let tentativas = 0;
     let musicStarted = false;
     let fadeInterval = null;
 
+    /* ================= MÚSICA COM FADE-IN ================= */
     function fadeInAudio(audio, targetVolume = 0.6, step = 0.02, interval = 120) {
       audio.volume = 0;
       fadeInterval = setInterval(() => {
@@ -508,19 +511,15 @@
       }
     }
 
-    function nextSection(id) {
+    /* ================= SCROLL SUAVE ================= */
+    window.nextSection = function(id) {
       const section = document.getElementById(id);
       if (!section) return;
 
-      section.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-
-      // garante que a música comece no primeiro clique
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       startMusicIfNeeded();
     }
-    
+
     /* ================= ANIMAÇÃO DAS SECTIONS ================= */
     const sections = document.querySelectorAll('section');
     const observer = new IntersectionObserver(entries => {
@@ -542,13 +541,11 @@
       naoBtn.style.transform = `translate(${x}px, ${y}px)`;
     }
 
-    if (naoBtn) {
-      naoBtn.addEventListener('mouseover', moverBotao);
-      naoBtn.addEventListener('touchstart', e => {
-        e.preventDefault();
-        moverBotao();
-      });
-    }
+    naoBtn?.addEventListener('mouseover', moverBotao);
+    naoBtn?.addEventListener('touchstart', e => {
+      e.preventDefault();
+      moverBotao();
+    });
 
     /* ================= CORAÇÕES E ALIANÇAS ================= */
     function criarCoracao() {
@@ -569,15 +566,13 @@
       setTimeout(() => r.remove(), 3500);
     }
 
-    if (simBtn) {
-      simBtn.addEventListener('click', () => {
-        resposta.innerHTML = "Então está decidido 😍💍<br>Meu futuro é com você.";
-        finalBtn.style.display = 'inline-block';
+    simBtn?.addEventListener('click', () => {
+      resposta.innerHTML = "Então está decidido 😍💍<br>Meu futuro é com você.";
+      finalBtn.style.display = 'inline-block';
 
-        for (let i = 0; i < 25; i++) criarCoracao();
-        for (let i = 0; i < 12; i++) criarAlianca();
-      });
-    }
+      for (let i = 0; i < 25; i++) criarCoracao();
+      for (let i = 0; i < 12; i++) criarAlianca();
+    });
 
     /* ================= TEXTO DIGITANDO ================= */
     const text = "Em apenas 7 meses, você se tornou uma das partes mais importantes da minha vida. Seu sorriso, seu jeito e seu carinho me fazem querer um futuro inteiro ao seu lado.";
@@ -604,22 +599,81 @@
     }
     setInterval(criarSparkle, 700);
 
-    /* ================= SENHA + LEMBRANÇA VIVA ================= */
+    /* ================= CARROSSEL COM AUTO SLIDE ================= */
+    const track = document.querySelector('.carousel-track');
+    const slides = document.querySelectorAll('.carousel-track img');
+    const prevBtn = document.querySelector('.carousel-btn.prev');
+    const nextBtn = document.querySelector('.carousel-btn.next');
+    const dots = document.querySelectorAll('.dot');
+
+    if (track && slides.length > 0) {
+      let currentIndex = 0;
+      let autoSlide;
+      const delay = 5000;
+
+      function updateCarousel() {
+        const w = slides[0].clientWidth;
+        track.style.transform = `translateX(-${currentIndex * w}px)`;
+        dots.forEach(dot => dot.classList.remove('active'));
+        dots[currentIndex]?.classList.add('active');
+      }
+
+      function nextSlide() {
+        currentIndex = (currentIndex + 1) % slides.length;
+        updateCarousel();
+      }
+
+      function startAuto() {
+        stopAuto();
+        autoSlide = setInterval(nextSlide, delay);
+      }
+
+      function stopAuto() {
+        if (autoSlide) clearInterval(autoSlide);
+      }
+
+      nextBtn?.addEventListener('click', () => {
+        nextSlide();
+        startAuto();
+      });
+
+      prevBtn?.addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+        updateCarousel();
+        startAuto();
+      });
+
+      dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => {
+          currentIndex = i;
+          updateCarousel();
+          startAuto();
+        });
+      });
+
+      track.addEventListener('mouseenter', stopAuto);
+      track.addEventListener('mouseleave', startAuto);
+      track.addEventListener('touchstart', stopAuto);
+      track.addEventListener('touchend', startAuto);
+
+      window.addEventListener('resize', updateCarousel);
+
+      updateCarousel();
+      startAuto();
+    }
+
+    /* ================= SENHA + VÍDEO RELÂMPAGO ================= */
     const senhaCorreta = "01062025";
 
-    function checkPassword() {
-      const input = document
-        .getElementById('passwordInput')
-        .value
-        .trim()
-        .toLowerCase();
-
+    window.checkPassword = function() {
+      const input = document.getElementById('passwordInput').value.trim().toLowerCase();
       const error = document.getElementById('errorMsg');
       const lock = document.getElementById('lockScreen');
       const memoryText = document.getElementById('memoryText');
+      const intro = document.getElementById('introVideo');
+      const video = document.getElementById('memoryVideo');
 
       if (input === senhaCorreta) {
-        // 💖 ACERTOU — TRANSFORMA EM LEMBRANÇA
         memoryText.textContent = "Tudo começou com um beijo… e virou amor 💖";
         memoryText.style.opacity = 1;
 
@@ -630,23 +684,17 @@
           setTimeout(criarCoracao, i * 120);
         }
 
-        // 🎬 VÍDEO RELÂMPAGO
-        const intro = document.getElementById('introVideo');
-        const video = document.getElementById('memoryVideo');
-
         setTimeout(() => {
           intro.classList.add('show');
           video.currentTime = 0;
           video.play();
         }, 1500);
 
-        // ⏱️ duração do vídeo (3s)
         setTimeout(() => {
           intro.classList.remove('show');
           video.pause();
-        }, 11500);
+        }, 9500);
 
-        // 🔓 DESBLOQUEIO FINAL
         setTimeout(() => {
           lock.style.opacity = 0;
         }, 8500);
@@ -654,21 +702,19 @@
         setTimeout(() => {
           lock.style.display = 'none';
           document.getElementById('siteContent').style.display = 'block';
-        }, 9200);
+        }, 9500);
 
       } else if (input === "forrozão" || input === "forrozao") {
         error.textContent = "Ok… o lugar lembramos 😅💃 mas e o dia? 💖";
-
       } else {
         tentativas++;
-
-        if (tentativas >= 3) {
-          error.textContent = "Foi em junho… quer um beijo pra ajudar? 😏💋";
-        } else {
-          error.textContent = "Hmm… pensa com carinho no nosso primeiro 💋";
-        }
+        error.textContent = tentativas >= 3
+          ? "Foi em junho… quer um beijo pra ajudar? 😏💋"
+          : "Hmm… pensa com carinho no nosso primeiro 💋";
       }
     }
+  });
+</script>
   </script>
 </body>
 </html>
